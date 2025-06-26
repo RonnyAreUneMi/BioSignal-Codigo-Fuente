@@ -3,3 +3,4 @@ Flask-SocketIO==5.3.6
 eventlet==0.33.3
 pytz==2024.1
 pyserial==3.5
+Jinja2==3.1.2

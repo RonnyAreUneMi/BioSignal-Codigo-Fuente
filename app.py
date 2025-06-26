@@ -216,4 +216,5 @@ if __name__ == '__main__':
         hilo = threading.Thread(target=read_arduino_data, daemon=True)
         hilo.start()
 
-    socketio.run(app, debug=False, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    socketio.run(app, debug=False, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), allow_unsafe_werkzeug=True)
+
