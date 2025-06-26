@@ -140,7 +140,7 @@ Este proyecto está bajo la licencia y derechos del Autor.
 
 ## 👨‍💻 Autor
 
-**Desarrollado por:** [Ronny Arellano]  
+**Desarrollado por:** Ronny Arellano  
 **Proyecto académico** – Ingeniería en Software  
 **Universidad Estatal de Milagro** – 2025
 
@@ -150,7 +150,7 @@ Este proyecto está bajo la licencia y derechos del Autor.
 Si tienes alguna pregunta o problema, puedes:
 
 - Abrir un **Issue** en GitHub
-- Contactar al desarrollador: [rarellanou@unemi.edu.ec]
+- Contactar al desarrollador: rarellanou@unemi.edu.ec
 
 ---
 
