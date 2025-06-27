@@ -133,7 +133,7 @@ latest_data = {
 irrigation_start_time = None
 last_pump_status = False
 
-# LECTURA DE DATOS ARDUINO
+# LECTURA DE DATOS ARDUINO - CORREGIDA
 def read_arduino_data():
     global latest_data, irrigation_start_time, last_pump_status
 
@@ -149,22 +149,37 @@ def read_arduino_data():
         try:
             if ser.in_waiting > 0:
                 line = ser.readline().decode('utf-8', errors='ignore').strip()
+                
+                # Imprimir línea para debug
+                print(f"Arduino dice: {line}")
 
-                if "Humedad:" in line and "Temp:" in line:
+                # Buscar líneas que contengan los datos del sensor
+                if "Raw sensor:" in line and "Humedad:" in line and "Temp:" in line and "Estado:" in line:
                     try:
-                        parts = line.split(" | ")
-
-                        humidity_part = parts[0]
-                        humidity = int(humidity_part.split("Humedad: ")[1].split("%")[0])
-
-                        temp_part = parts[1]
-                        temp_str = temp_part.split("Temp: ")[1].split("C")[0]
-                        temperature = float(temp_str) if temp_str != "nan" else 0.0
-
-                        estado_part = parts[2] if len(parts) > 2 else "Estado: ESPERANDO"
-                        estado = estado_part.split("Estado: ")[1]
-                        pump_status = "RIEGO" in estado
-
+                        # Parsear la línea completa del serial
+                        # Formato: "Raw sensor: 567 -> Humedad: 45% | Temp: 25.2C | Estado: ESPERANDO | Planta necesita agua: NO"
+                        
+                        # Extraer humedad
+                        humidity_match = re.search(r'Humedad: (\d+)%', line)
+                        humidity = int(humidity_match.group(1)) if humidity_match else 0
+                        
+                        # Extraer temperatura
+                        temp_match = re.search(r'Temp: ([\d\.-]+)C', line)
+                        if temp_match:
+                            temp_str = temp_match.group(1)
+                            temperature = float(temp_str) if temp_str != "nan" else 0.0
+                        else:
+                            temperature = 0.0
+                        
+                        # Extraer estado
+                        estado_match = re.search(r'Estado: ([^|]+)', line)
+                        estado = estado_match.group(1).strip() if estado_match else "DESCONOCIDO"
+                        
+                        # CORECCIÓN PRINCIPAL: Determinar estado de la bomba correctamente
+                        # En Arduino: bombaActiva es true cuando está regando
+                        pump_status = "RIEGO ACTIVO" in estado.upper()
+                        
+                        # Actualizar datos
                         latest_data.update({
                             'humidity': humidity,
                             'temperature': temperature,
@@ -173,11 +188,14 @@ def read_arduino_data():
                             'timestamp': get_local_time_iso()
                         })
 
+                        # Detectar cambios en el estado de la bomba
                         if pump_status and not last_pump_status:
+                            print(f"🚿 BOMBA ENCENDIDA - Humedad: {humidity}%")
                             irrigation_start_time = time.time()
                             save_irrigation_event("INICIO_RIEGO", humidity_before=humidity)
 
                         elif not pump_status and last_pump_status:
+                            print(f"⏹️ BOMBA APAGADA - Humedad: {humidity}%")
                             if irrigation_start_time:
                                 duration_seconds = int(time.time() - irrigation_start_time)
                                 save_irrigation_event("FIN_RIEGO", duration=duration_seconds, humidity_after=humidity)
@@ -187,17 +205,24 @@ def read_arduino_data():
 
                         last_pump_status = pump_status
 
+                        # Guardar en base de datos cada 30 segundos
                         if int(time.time()) % 30 == 0:
                             save_sensor_data(humidity, temperature, pump_status, estado)
 
+                        # Enviar datos por WebSocket
                         socketio.emit('sensor_data', latest_data)
+                        
+                        # Debug info
+                        print(f"💧 H:{humidity}% T:{temperature}°C Bomba:{'ON' if pump_status else 'OFF'} Estado:{estado}")
 
                     except Exception as e:
-                        pass
+                        print(f"Error parseando datos: {e}")
+                        print(f"Línea problemática: {line}")
 
-            time.sleep(1)
+            time.sleep(0.5)  # Reducir un poco el delay para mejor respuesta
 
         except Exception as e:
+            print(f"Error en lectura Arduino: {e}")
             break
 
     if ser:
@@ -379,6 +404,7 @@ def start_cloudflare_tunnel():
             print(Fore.RED + f"⚠️ Error al iniciar túnel Cloudflare: {e}")
 
     threading.Thread(target=run_tunnel, daemon=True).start()
+
 # INICIO DEL SISTEMA
 if __name__ == '__main__':
     init_db()

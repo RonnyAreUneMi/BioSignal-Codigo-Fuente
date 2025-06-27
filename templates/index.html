@@ -8,7 +8,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.44.0/apexcharts.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
-    
     <style>
         :root {
             /* Modo Oscuro (noche 6pm - 6am) */
@@ -209,7 +208,201 @@
         .status-card:hover {
             transform: translateY(-5px);
         }
+        /* Estilos para la sección de mensajes de la planta */
+.plant-message-section {
+    margin-bottom: 30px;
+}
 
+.plant-message-card {
+    backdrop-filter: blur(10px);
+    border-radius: 25px;
+    padding: 25px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.dark-mode .plant-message-card {
+    background: var(--card-bg-dark);
+    border: 1px solid var(--card-border-dark);
+}
+
+.light-mode .plant-message-card {
+    background: var(--card-bg-light);
+    border: 1px solid var(--card-border-light);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.plant-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.dark-mode .plant-avatar {
+    background: rgba(76, 175, 80, 0.2);
+    border: 2px solid rgba(76, 175, 80, 0.4);
+    color: #4CAF50;
+}
+
+.light-mode .plant-avatar {
+    background: rgba(76, 175, 80, 0.15);
+    border: 2px solid rgba(76, 175, 80, 0.3);
+    color: #2E7D32;
+}
+
+.plant-message-content {
+    flex: 1;
+}
+
+.plant-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.dark-mode .plant-name {
+    color: var(--text-secondary-dark);
+}
+
+.light-mode .plant-name {
+    color: var(--text-secondary-light);
+}
+
+.plant-message {
+    font-size: 1.3rem;
+    font-weight: 500;
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.dark-mode .plant-message {
+    color: var(--text-primary-dark);
+}
+
+.light-mode .plant-message {
+    color: var(--text-primary-light);
+}
+
+.plant-mood {
+    font-size: 2.5rem;
+    position: absolute;
+    right: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Estados de la planta */
+.plant-message-card.happy {
+    animation: happy-glow 2s ease-in-out infinite alternate;
+}
+
+.plant-message-card.watering {
+    animation: watering-pulse 1.5s ease-in-out infinite;
+}
+
+.plant-message-card.watering .plant-avatar {
+    animation: bounce 1s ease-in-out infinite;
+}
+
+.plant-message-card.thirsty {
+    animation: thirsty-shake 0.5s ease-in-out infinite;
+}
+
+.plant-message-card.critical {
+    animation: critical-alert 0.8s ease-in-out infinite;
+}
+
+.dark-mode .plant-message-card.critical {
+    border-color: rgba(244, 67, 54, 0.6);
+    background: rgba(244, 67, 54, 0.1);
+}
+
+.light-mode .plant-message-card.critical {
+    border-color: rgba(244, 67, 54, 0.8);
+    background: rgba(244, 67, 54, 0.05);
+}
+
+.plant-message-card.critical .plant-avatar {
+    background: rgba(244, 67, 54, 0.2) !important;
+    border-color: rgba(244, 67, 54, 0.4) !important;
+    color: #f44336 !important;
+}
+
+/* Animaciones */
+@keyframes float {
+    0%, 100% { transform: translateY(-50%) rotate(0deg); }
+    50% { transform: translateY(-60%) rotate(5deg); }
+}
+
+@keyframes happy-glow {
+    0% { box-shadow: 0 0 10px rgba(76, 175, 80, 0.3); }
+    100% { box-shadow: 0 0 20px rgba(76, 175, 80, 0.5); }
+}
+
+@keyframes watering-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+@keyframes thirsty-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+}
+
+@keyframes critical-alert {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 0 10px rgba(244, 67, 54, 0.3);
+    }
+    50% { 
+        transform: scale(1.01);
+        box-shadow: 0 0 25px rgba(244, 67, 54, 0.6);
+    }
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .plant-message-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+    }
+    
+    .plant-avatar {
+        width: 60px;
+        height: 60px;
+        font-size: 2rem;
+    }
+    
+    .plant-message {
+        font-size: 1.1rem;
+    }
+    
+    .plant-mood {
+        position: static;
+        transform: none;
+        margin-top: 10px;
+    }
+}
         .dark-mode .status-card:hover {
             background: var(--hover-bg-dark);
         }
@@ -546,23 +739,42 @@
             }
         }
     </style>
+    
 </head>
 <body class="dark-mode">
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <div class="logo-box">
-    <img src="{{ url_for('static', filename='biosignal.png') }}" alt="Logo de BioSignal" class="logo-img">
-</div>
-
-                <div>
+                <div class="platform-info">
                     <h1>BioSignal</h1>
+                    <p class="platform-description">Monitoreo y Control Inteligente de Cultivos</p>
+                    <div class="platform-features">
+                        <span class="feature-tag"><i class="fas fa-wifi"></i> IoT Conectado</span>
+                        <span class="feature-tag"><i class="fas fa-chart-line"></i> Análisis en Tiempo Real</span>
+                        <span class="feature-tag"><i class="fas fa-mobile-alt"></i> Control Remoto</span>
+                    </div>
+                </div>
+                <div class="logo-box">
+                    <img src="{{ url_for('static', filename='biosignal.png') }}" alt="Logo de BioSignal" class="logo-img">
                 </div>
             </div>
-            <p>Monitoreo y Control Inteligente de Cultivos</p>
             <div class="connection-status" id="connectionStatus">
                 <i class="fas fa-wifi"></i>
                 <span>Conectando...</span>
+            </div>
+        </div>
+
+        <!-- Sección de Mensajes de la Planta -->
+        <div class="plant-message-section">
+            <div class="plant-message-card" id="plantMessageCard">
+                <div class="plant-avatar">
+                    <i class="fas fa-seedling" id="plantIcon"></i>
+                </div>
+                <div class="plant-message-content">
+                    <div class="plant-name">🌱 Mi Planta Dice:</div>
+                    <div class="plant-message" id="plantMessage">Conectando con la planta...</div>
+                    <div class="plant-mood" id="plantMood">😴</div>
+                </div>
             </div>
         </div>
 
@@ -674,8 +886,7 @@
             </div>
         </div>
     </div>
-
-    <script>
+        <script>
         let socket;
         let charts = {};
         let dataHistory = [];
@@ -683,7 +894,164 @@
 
         // Configurar zona horaria de Ecuador (UTC-5)
         const ECUADOR_TIMEZONE_OFFSET = -5; // UTC-5
+        // Función para actualizar el mensaje de la planta
+function updatePlantMessage(humidity, pumpStatus, systemStatus) {
+    const plantMessage = document.getElementById('plantMessage');
+    const plantMood = document.getElementById('plantMood');
+    const plantIcon = document.getElementById('plantIcon');
+    const plantCard = document.getElementById('plantMessageCard');
+    
+    // Asegurar que tenemos un valor numérico de humedad
+    const humidityValue = parseFloat(humidity) || 0;
+    
+    let message = "";
+    let mood = "";
+    let iconClass = "fas fa-seedling";
+    let cardClass = "plant-message-card";
+    
+    if (pumpStatus === true || pumpStatus === 'ACTIVA') {
+        // Durante el riego
+        message = "¡Ahhhh qué rico! 💧😋 Mi sistema automático me está regando perfectamente";
+        mood = "😋";
+        iconClass = "fas fa-tint";
+        cardClass += " watering";
+    } else if (humidityValue > 80) {
+        // Muy húmedo - coincide con LCD "Me ahogo :O"
+        message = "¡Ayyyy me ahogo! 🌊😵 Demasiada agua, pero mi sistema inteligente lo controlará";
+        mood = "😵";
+        iconClass = "fas fa-exclamation-triangle";
+        cardClass += " drowning";
+    } else if (humidityValue > 60) {
+        // Húmedo - coincide con LCD "Muy mojada :|"
+        message = "Estoy muy mojada 💧😐 Pero está bien, mi sistema sabe lo que hace";
+        mood = "😐";
+        iconClass = "fas fa-tint";
+        cardClass += " wet";
+    } else if (humidityValue > 40) {
+        // Humedad buena - coincide con LCD "Estoy feliz :)"
+        message = "¡Estoy súper feliz! 😊🌿 Mi nivel de humedad está perfecto, gracias BioSignal";
+        mood = "😊";
+        iconClass = "fas fa-seedling";
+        cardClass += " happy";
+    } else if (humidityValue > 30) {
+        // Humedad baja - coincide con LCD "Tengo sed :/"
+        message = "Tengo un poquito de sed 😕💧 Pero confío en que mi riego automático actuará pronto";
+        mood = "😕";
+        iconClass = "fas fa-seedling";
+        cardClass += " thirsty";
+    } else if (humidityValue > 15) {
+        // Muy seca - coincide con LCD "Agua urgente :("
+        message = "¡Estoy sedienta! 😰🌵 Esperando que mi sistema automático detecte que necesito riego";
+        mood = "😰";
+        iconClass = "fas fa-exclamation-triangle";
+        cardClass += " urgent";
+    } else {
+        // Crítica - coincide con LCD "Me muero D:"
+        message = "¡Situación crítica! 💀🆘 Mi sistema automático debería activarse YA";
+        mood = "😵";
+        iconClass = "fas fa-skull-crossbones";
+        cardClass += " critical";
+    }
+    
+    // Mensajes especiales según el estado del sistema
+    if (systemStatus && systemStatus.includes("ESPERANDO")) {
+        if (humidityValue > 70) {
+            message = "Todo perfecto por aquí, descansando tranquila 😴💤";
+            mood = "😴";
+        }
+    }
+    
+    // Actualizar el DOM
+    if (plantMessage) plantMessage.textContent = message;
+    if (plantMood) plantMood.textContent = mood;
+    if (plantIcon) plantIcon.className = iconClass;
+    if (plantCard) plantCard.className = cardClass;
+    
+    console.log(`Mensaje actualizado - Humedad: ${humidityValue}%, Bomba: ${pumpStatus}, Sistema: ${systemStatus}`);
+}
 
+// Función para actualizar con los valores actuales de la pantalla
+function updatePlantMessageFromCurrentValues() {
+    const humidityElement = document.getElementById('humidityValue');
+    const pumpElement = document.getElementById('pumpStatus');
+    const systemElement = document.getElementById('systemStatus');
+    
+    if (humidityElement && pumpElement && systemElement) {
+        const humidity = parseFloat(humidityElement.textContent.replace('%', ''));
+        const pumpStatus = pumpElement.textContent === 'ACTIVA';
+        const systemStatus = systemElement.textContent;
+        
+        console.log(`Leyendo valores actuales - Humedad: ${humidity}%, Bomba: ${pumpStatus}, Sistema: ${systemStatus}`);
+        updatePlantMessage(humidity, pumpStatus, systemStatus);
+    }
+}
+
+// Función modificada para actualizar datos en tiempo real
+function updateRealTimeData(data) {
+    // Actualizar valores en los cards
+    document.getElementById('humidityValue').textContent = data.humidity + '%';
+    document.getElementById('temperatureValue').textContent = data.temperature + '°C';
+    document.getElementById('pumpStatus').textContent = data.pump_status ? 'ACTIVA' : 'INACTIVA';
+    document.getElementById('systemStatus').textContent = data.system_status;
+    
+    // Actualizar el mensaje de la planta con los datos recibidos
+    updatePlantMessage(data.humidity, data.pump_status, data.system_status);
+    
+    // Efecto visual para la bomba
+    const pumpCard = document.querySelectorAll('.status-card')[2];
+    if (data.pump_status) {
+        pumpCard.classList.add('pulse');
+    } else {
+        pumpCard.classList.remove('pulse');
+    }
+}
+
+// Función para cargar datos históricos
+function loadHistoricalData() {
+    fetch('/api/historical-data?hours=24')
+        .then(response => response.json())
+        .then(data => {
+            if (data.length > 0) {
+                dataHistory = data.reverse().map(item => ({
+                    timestamp: convertToEcuadorTime(item.timestamp),
+                    humidity: item.humidity,
+                    temperature: item.temperature,
+                    pump_status: item.pump_status ? 1 : 0
+                }));
+                updateCharts();
+                
+                // Actualizar el mensaje de la planta con los datos más recientes
+                const latestData = dataHistory[dataHistory.length - 1];
+                if (latestData) {
+                    updatePlantMessage(latestData.humidity, latestData.pump_status === 1, 'SISTEMA_ACTIVO');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error cargando datos históricos:', error);
+            // Si no hay datos históricos, intentar actualizar con valores actuales
+            setTimeout(updatePlantMessageFromCurrentValues, 1000);
+        });
+}
+
+// Agregar al final del DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    // ... tu código existente ...
+    
+    // Actualizar mensaje después de que todo esté cargado
+    setTimeout(() => {
+        updatePlantMessageFromCurrentValues();
+        console.log('Intentando actualizar mensaje de la planta con valores actuales');
+    }, 2000);
+    
+    // También verificar cada 5 segundos si el mensaje necesita actualizarse
+    setInterval(updatePlantMessageFromCurrentValues, 5000);
+});
+
+// Función para forzar actualización manual (puedes llamarla desde la consola para testing)
+function forceUpdatePlantMessage() {
+    updatePlantMessageFromCurrentValues();
+}
         // Función para obtener la hora actual de Ecuador
         function getEcuadorTime() {
             const now = new Date();
@@ -1061,6 +1429,7 @@
                 })
                 .catch(error => console.error('Error:', error));
         }
+        
     </script>
 </body>
 </html>
