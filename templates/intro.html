@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioSignal - El Despertar del Riego</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Russo+One&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000000;
+            color: #FFE81F;
+            font-family: 'Orbitron', monospace;
+            overflow: hidden;
+            perspective: 600px;
+            height: 100vh;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(1px 1px at 50px 80px, #ffffff, transparent),
+                radial-gradient(1px 1px at 150px 20px, #ffffff, transparent),
+                radial-gradient(1px 1px at 250px 120px, #ffffff, transparent),
+                radial-gradient(1px 1px at 350px 60px, #ffffff, transparent),
+                radial-gradient(1px 1px at 450px 200px, #ffffff, transparent),
+                radial-gradient(1px 1px at 120px 180px, #ffffff, transparent),
+                radial-gradient(1px 1px at 320px 280px, #ffffff, transparent),
+                radial-gradient(1px 1px at 520px 100px, #ffffff, transparent),
+                radial-gradient(1px 1px at 80px 300px, #ffffff, transparent),
+                radial-gradient(1px 1px at 280px 50px, #ffffff, transparent),
+                radial-gradient(1px 1px at 480px 250px, #ffffff, transparent),
+                radial-gradient(1px 1px at 180px 320px, #ffffff, transparent),
+                radial-gradient(1px 1px at 380px 150px, #ffffff, transparent),
+                radial-gradient(1px 1px at 580px 220px, #ffffff, transparent),
+                radial-gradient(1px 1px at 30px 250px, #ffffff, transparent),
+                radial-gradient(1px 1px at 230px 90px, #ffffff, transparent),
+                radial-gradient(1px 1px at 430px 330px, #ffffff, transparent),
+                radial-gradient(1px 1px at 630px 40px, #ffffff, transparent);
+            background-size: 700px 400px;
+            background-repeat: repeat;
+            animation: twinkle 3s infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+
+        .logo-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            opacity: 0;
+            animation: logoAppear 1.5s ease-in-out 0.2s forwards, logoFade 1.5s ease-in-out 2.5s forwards;
+        }
+
+        .logo {
+            text-align: center;
+            color: #FFE81F;
+            text-shadow: 0 0 30px #FFE81F, 0 0 60px #FFE81F, 0 0 90px #FFE81F;
+            font-family: 'Russo One', monospace;
+            line-height: 1.1;
+            transform: perspective(800px) rotateX(0deg);
+        }
+
+        .sistema {
+            font-size: 6rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            letter-spacing: 12px;
+        }
+
+        .biosignal {
+            font-size: 5rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+            letter-spacing: 8px;
+            background: linear-gradient(45deg, #FFE81F, #00D4FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 2rem;
+            text-align: center;
+            color: #00D4FF;
+            text-shadow: 0 0 20px #00D4FF, 0 0 40px #00D4FF;
+            letter-spacing: 3px;
+            margin-top: 30px;
+            font-family: 'Orbitron', monospace;
+        }
+
+        @keyframes logoAppear {
+            0% { 
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.3);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            100% { 
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        @keyframes logoFade {
+            0% { 
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% { 
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.1);
+            }
+        }
+
+        .crawl-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            transform-origin: 50% 100%;
+            transform: perspective(600px) rotateX(20deg);
+            opacity: 0;
+            animation: crawlStart 1s ease-in 4s forwards;
+        }
+
+        @keyframes crawlStart {
+            to { opacity: 1; }
+        }
+
+        .crawl {
+            position: absolute;
+            top: 100vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            max-width: 900px;
+            font-size: 2.8rem;
+            font-weight: 600;
+            line-height: 1.8;
+            text-align: justify;
+            letter-spacing: 2px;
+            animation: crawl 80s linear 5s forwards;
+            text-shadow: 0 0 10px rgba(255, 232, 31, 0.8);
+        }
+
+        @keyframes crawl {
+            0% { 
+                top: 100vh;
+                transform: translateX(-50%) scale(1);
+            }
+            50% {
+                transform: translateX(-50%) scale(0.9);
+            }
+            100% { 
+                top: -300vh;
+                transform: translateX(-50%) scale(0.7);
+            }
+        }
+
+        .episode {
+            font-size: 3rem;
+            color: #00D4FF;
+            text-align: center;
+            margin-bottom: 80px;
+            font-weight: bold;
+            letter-spacing: 6px;
+            text-shadow: 0 0 20px #00D4FF, 0 0 40px #00D4FF;
+            font-family: 'Russo One', monospace;
+        }
+
+        .story-text {
+            margin-bottom: 60px;
+            color: #FFE81F;
+            text-shadow: 0 0 8px rgba(255, 232, 31, 0.8);
+            font-size: 2.8rem;
+            line-height: 1.7;
+            text-indent: 50px;
+        }
+
+        .story-text:first-of-type {
+            font-size: 3.2rem;
+            color: #FFE81F;
+            text-shadow: 0 0 15px #FFE81F;
+        }
+
+        .story-text:last-of-type {
+            font-size: 3.5rem;
+            color: #FFE81F;
+            text-shadow: 0 0 20px #FFE81F;
+            text-align: center;
+            font-style: italic;
+            margin-top: 100px;
+        }
+
+        .character-highlight {
+            color: #00D4FF;
+            text-shadow: 0 0 20px #00D4FF;
+            font-weight: bold;
+        }
+
+        .villain-highlight {
+            color: #FF0000;
+            text-shadow: 0 0 20px #FF0000;
+            font-weight: bold;
+        }
+
+        .force-highlight {
+            color: #00FF00;
+            text-shadow: 0 0 25px #00FF00;
+            font-weight: bold;
+            animation: forceGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes forceGlow {
+            0% { filter: brightness(1); }
+            100% { filter: brightness(1.5); }
+        }
+
+        .crawl-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 100%);
+            z-index: 1;
+        }
+
+        .crawl-container::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: linear-gradient(to top, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 100%);
+            z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+            .sistema { 
+                font-size: 3.5rem; 
+                letter-spacing: 6px;
+            }
+            .biosignal {
+                font-size: 2.8rem;
+                letter-spacing: 4px;
+            }
+            .subtitle { 
+                font-size: 1.3rem; 
+                letter-spacing: 2px;
+            }
+            .crawl { 
+                font-size: 1.6rem; 
+                width: 85%; 
+                line-height: 1.6;
+            }
+            .episode {
+                font-size: 1.8rem;
+                margin-bottom: 40px;
+            }
+            .story-text {
+                font-size: 1.6rem;
+                margin-bottom: 40px;
+                text-indent: 30px;
+            }
+            .story-text:first-of-type {
+                font-size: 1.8rem;
+            }
+            .story-text:last-of-type {
+                font-size: 2rem;
+                margin-top: 60px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sistema { 
+                font-size: 2.5rem; 
+            }
+            .biosignal {
+                font-size: 2rem;
+            }
+            .subtitle { 
+                font-size: 1rem; 
+            }
+            .crawl { 
+                font-size: 1.2rem; 
+                width: 90%; 
+            }
+            .episode {
+                font-size: 1.4rem;
+            }
+            .story-text {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars"></div>
+
+    <div class="logo-container">
+        <div class="logo">
+            <div class="sistema">SISTEMA</div>
+            <div class="biosignal">BIOSIGNAL</div>
+        </div>
+        <div class="subtitle">El Despertar del Riego Automático</div>
+    </div>
+
+    <div class="crawl-container">
+        <div class="crawl">
+            <div class="episode">EPISODIO VII: EL DESPERTAR DEL RIEGO</div>
+            
+            <div class="story-text">
+                En una galaxia muy lejana, las plantas del sistema agrícola enfrentaban su mayor amenaza: el <span class="villain-highlight">Imperio de la Sequía</span>. Los sensores de humedad tradicionales fallaban constantemente, y los cultivos morían bajo el despiadado calor. Los granjeros perdían la esperanza hasta que apareció el <span class="character-highlight">Maestro BioSignal</span>, un revolucionario sistema de monitoreo que prometía traer equilibrio a la fuerza de la naturaleza.
+            </div>
+            
+            <div class="story-text">
+                Como los <span class="character-highlight">droides R2-D2 y C-3PO</span>, el sistema BioSignal funciona con sensores inteligentes que se comunican en tiempo real. Cuando la temperatura desciende bajo los 30°C o la humedad cae peligrosamente, los <span class="force-highlight">actuadores automáticos</span> se activan como sables de luz verdes, protegiendo cada planta con precisión milimétrica. La tecnología del futuro había llegado para salvar los jardines del presente.
+            </div>
+            
+            <div class="story-text">
+                La <span class="character-highlight">Princesa Leia de los Datos</span> proporciona información crucial a los agricultores. Pueden ver gráficos detallados de temperatura, humedad y patrones de riego desde cualquier lugar de la galaxia, como si tuvieran el poder de <span class="force-highlight">la Fuerza Jedi</span> corriendo por sus venas. El equilibrio entre tecnología y naturaleza finalmente se había restaurado.
+            </div>
+            
+            <div class="story-text">
+                <span class="force-highlight">Que la Fuerza del riego automático esté contigo... siempre.</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

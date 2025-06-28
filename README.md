@@ -3,6 +3,22 @@
 
 ---
 
+## 🎥 Video Presentacion
+
+<div align="center">
+  
+### 📹 **¡Unete al lado Automatico!!**
+  
+[![Video Demostración BioSignal](https://img.youtube.com/vi/VdRgOYqLFSA/maxresdefault.jpg)](https://youtu.be/VdRgOYqLFSA?si=LmCVEpfzb_5LctZB)
+
+**🎬 [▶️ Ver Demo Completa en YouTube](https://youtu.be/VdRgOYqLFSA?si=LmCVEpfzb_5LctZB)**
+
+*Descubre cómo funciona el sistema de monitoreo en tiempo real, las gráficas dinámicas y el acceso remoto desde cualquier dispositivo.*
+
+</div>
+
+---
+
 ## 🚀 Características Principales
 
 - 📡 **Recolección en tiempo real** de datos desde Arduino (vía puerto serie)
@@ -125,13 +141,6 @@ CREATE TABLE irrigation_events (
     humidity_after INTEGER
 );
 ```
-
----
-
-## 🖼️ Capturas de Pantalla
-*📌 Agregar aquí imágenes de la interfaz web, gráficos y eventos.*
-
----
 
 ## ✅ Comparación con Versión de Escritorio (.exe)
 | Característica | Web (este proyecto) | Escritorio (versión `.exe`) |
