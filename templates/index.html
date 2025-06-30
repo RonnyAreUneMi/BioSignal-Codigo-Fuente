@@ -1003,7 +1003,7 @@ function updateRealTimeData(data) {
 
 // Función para cargar datos históricos
 function loadHistoricalData() {
-    fetch('/api/historical-data?hours=24')
+    fetch('/api/historical-data?days=7')
         .then(response => response.json())
         .then(data => {
             if (data.length > 0) {

@@ -71,28 +71,36 @@ def get_db_connection():
     return conn
 
 def save_sensor_data(humidity, temperature, pump_status, system_status):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    cursor.execute('''
-        INSERT INTO sensor_data (timestamp, humidity, temperature, pump_status, system_status)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (get_local_time(), humidity, temperature, pump_status, system_status))
+        cursor.execute('''
+            INSERT INTO sensor_data (timestamp, humidity, temperature, pump_status, system_status)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (get_local_time(), humidity, temperature, pump_status, system_status))
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+        conn.close()
+        print(f"✅ Datos guardados en BD: H:{humidity}% T:{temperature}°C")
+    except Exception as e:
+        print(f"❌ Error guardando en BD: {e}")
 
 def save_irrigation_event(event_type, duration=None, humidity_before=None, humidity_after=None):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    cursor.execute('''
-        INSERT INTO irrigation_events (timestamp, event_type, duration, humidity_before, humidity_after)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (get_local_time(), event_type, duration, humidity_before, humidity_after))
+        cursor.execute('''
+            INSERT INTO irrigation_events (timestamp, event_type, duration, humidity_before, humidity_after)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (get_local_time(), event_type, duration, humidity_before, humidity_after))
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+        conn.close()
+        print(f"✅ Evento guardado: {event_type}")
+    except Exception as e:
+        print(f"❌ Error guardando evento: {e}")
 
 # CONFIGURACIÓN ARDUINO
 def find_arduino_port():
@@ -132,18 +140,21 @@ latest_data = {
 
 irrigation_start_time = None
 last_pump_status = False
+last_save_time = 0  # Para controlar el guardado cada 30 segundos
 
 # LECTURA DE DATOS ARDUINO - CORREGIDA
 def read_arduino_data():
-    global latest_data, irrigation_start_time, last_pump_status
+    global latest_data, irrigation_start_time, last_pump_status, last_save_time
 
     ser = connect_arduino()
 
     if not ser:
         latest_data['connection_status'] = 'Error: Arduino no detectado'
+        print("❌ Arduino no detectado")
         return
 
     latest_data['connection_status'] = 'Conectado'
+    print("✅ Arduino conectado exitosamente")
 
     while True:
         try:
@@ -205,9 +216,11 @@ def read_arduino_data():
 
                         last_pump_status = pump_status
 
-                        # Guardar en base de datos cada 30 segundos
-                        if int(time.time()) % 30 == 0:
+                        # *** CORECCIÓN PRINCIPAL: Guardar datos cada 30 segundos ***
+                        current_time = time.time()
+                        if current_time - last_save_time >= 30:  # 30 segundos han pasado
                             save_sensor_data(humidity, temperature, pump_status, estado)
+                            last_save_time = current_time
 
                         # Enviar datos por WebSocket
                         socketio.emit('sensor_data', latest_data)
@@ -216,17 +229,47 @@ def read_arduino_data():
                         print(f"💧 H:{humidity}% T:{temperature}°C Bomba:{'ON' if pump_status else 'OFF'} Estado:{estado}")
 
                     except Exception as e:
-                        print(f"Error parseando datos: {e}")
+                        print(f"❌ Error parseando datos: {e}")
                         print(f"Línea problemática: {line}")
 
             time.sleep(0.5)  # Reducir un poco el delay para mejor respuesta
 
         except Exception as e:
-            print(f"Error en lectura Arduino: {e}")
-            break
+            print(f"❌ Error en lectura Arduino: {e}")
+            time.sleep(2)  # Esperar antes de reintentar
+            # Intentar reconectar
+            ser = connect_arduino()
+            if not ser:
+                latest_data['connection_status'] = 'Error: Arduino desconectado'
+                break
 
     if ser:
         ser.close()
+
+# FUNCIÓN PARA INSERTAR DATOS DE PRUEBA (OPCIONAL)
+def insert_test_data():
+    """Función para insertar datos de prueba si no hay datos en la BD"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Verificar si hay datos
+    cursor.execute('SELECT COUNT(*) FROM sensor_data')
+    count = cursor.fetchone()[0]
+    
+    if count == 0:
+        print("📊 Insertando datos de prueba...")
+        # Insertar algunos datos de prueba
+        for i in range(10):
+            timestamp = datetime.now(ECUADOR_TZ) - timedelta(minutes=i*5)
+            cursor.execute('''
+                INSERT INTO sensor_data (timestamp, humidity, temperature, pump_status, system_status)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (timestamp.strftime('%Y-%m-%d %H:%M:%S'), 45+i, 25.0+i*0.5, False, 'ESPERANDO'))
+        
+        conn.commit()
+        print("✅ Datos de prueba insertados")
+    
+    conn.close()
 
 # RUTAS WEB
 @app.route('/')
@@ -241,121 +284,143 @@ def get_current_data():
 def get_historical_data():
     hours = request.args.get('hours', 24, type=int)
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    hours_ago = datetime.now(ECUADOR_TZ) - timedelta(hours=hours)
-    hours_ago_str = hours_ago.strftime('%Y-%m-%d %H:%M:%S')
+        hours_ago = datetime.now(ECUADOR_TZ) - timedelta(hours=hours)
+        hours_ago_str = hours_ago.strftime('%Y-%m-%d %H:%M:%S')
 
-    cursor.execute('''
-        SELECT * FROM sensor_data 
-        WHERE timestamp >= ?
-        ORDER BY timestamp DESC
-        LIMIT 100
-    ''', (hours_ago_str,))
+        cursor.execute('''
+            SELECT * FROM sensor_data 
+            WHERE timestamp >= ?
+            ORDER BY timestamp DESC
+            LIMIT 100
+        ''', (hours_ago_str,))
 
-    data = []
-    for row in cursor.fetchall():
-        try:
-            dt_naive = datetime.strptime(row['timestamp'], '%Y-%m-%d %H:%M:%S')
-            dt_local = ECUADOR_TZ.localize(dt_naive)
-            iso_timestamp = dt_local.isoformat()
-        except:
-            iso_timestamp = row['timestamp']
+        data = []
+        for row in cursor.fetchall():
+            try:
+                dt_naive = datetime.strptime(row['timestamp'], '%Y-%m-%d %H:%M:%S')
+                dt_local = ECUADOR_TZ.localize(dt_naive)
+                iso_timestamp = dt_local.isoformat()
+            except:
+                iso_timestamp = row['timestamp']
 
-        data.append({
-            'timestamp': iso_timestamp,
-            'humidity': row['humidity'],
-            'temperature': row['temperature'],
-            'pump_status': row['pump_status'],
-            'system_status': row['system_status']
-        })
+            data.append({
+                'timestamp': iso_timestamp,
+                'humidity': row['humidity'],
+                'temperature': row['temperature'],
+                'pump_status': row['pump_status'],
+                'system_status': row['system_status']
+            })
 
-    conn.close()
-    return jsonify(data)
+        conn.close()
+        print(f"📊 Enviando {len(data)} registros históricos")
+        return jsonify(data)
+    
+    except Exception as e:
+        print(f"❌ Error obteniendo datos históricos: {e}")
+        return jsonify([])
 
 @app.route('/api/irrigation-events')
 def get_irrigation_events():
     days = request.args.get('days', 7, type=int)
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    days_ago = datetime.now(ECUADOR_TZ) - timedelta(days=days)
-    days_ago_str = days_ago.strftime('%Y-%m-%d %H:%M:%S')
+        days_ago = datetime.now(ECUADOR_TZ) - timedelta(days=days)
+        days_ago_str = days_ago.strftime('%Y-%m-%d %H:%M:%S')
 
-    cursor.execute('''
-        SELECT * FROM irrigation_events 
-        WHERE timestamp >= ?
-        ORDER BY timestamp DESC
-        LIMIT 50
-    ''', (days_ago_str,))
+        cursor.execute('''
+            SELECT * FROM irrigation_events 
+            WHERE timestamp >= ?
+            ORDER BY timestamp DESC
+            LIMIT 50
+        ''', (days_ago_str,))
 
-    events = []
-    for row in cursor.fetchall():
-        duration_text = ""
-        if row['duration']:
-            if row['duration'] < 60:
-                duration_text = f"{row['duration']}s"
-            elif row['duration'] < 3600:
-                minutes = row['duration'] // 60
-                seconds = row['duration'] % 60
-                duration_text = f"{minutes}m {seconds}s"
-            else:
-                hours = row['duration'] // 3600
-                minutes = (row['duration'] % 3600) // 60
-                duration_text = f"{hours}h {minutes}m"
+        events = []
+        for row in cursor.fetchall():
+            duration_text = ""
+            if row['duration']:
+                if row['duration'] < 60:
+                    duration_text = f"{row['duration']}s"
+                elif row['duration'] < 3600:
+                    minutes = row['duration'] // 60
+                    seconds = row['duration'] % 60
+                    duration_text = f"{minutes}m {seconds}s"
+                else:
+                    hours = row['duration'] // 3600
+                    minutes = (row['duration'] % 3600) // 60
+                    duration_text = f"{hours}h {minutes}m"
 
-        events.append({
-            'timestamp': row['timestamp'],
-            'event_type': row['event_type'],
-            'duration': row['duration'],
-            'duration_text': duration_text,
-            'humidity_before': row['humidity_before'],
-            'humidity_after': row['humidity_after']
-        })
+            events.append({
+                'timestamp': row['timestamp'],
+                'event_type': row['event_type'],
+                'duration': row['duration'],
+                'duration_text': duration_text,
+                'humidity_before': row['humidity_before'],
+                'humidity_after': row['humidity_after']
+            })
 
-    conn.close()
-    return jsonify(events)
+        conn.close()
+        return jsonify(events)
+    
+    except Exception as e:
+        print(f"❌ Error obteniendo eventos: {e}")
+        return jsonify([])
 
 @app.route('/api/statistics')
 def get_statistics():
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    hours_ago = datetime.now(ECUADOR_TZ) - timedelta(hours=24)
-    hours_ago_str = hours_ago.strftime('%Y-%m-%d %H:%M:%S')
+        hours_ago = datetime.now(ECUADOR_TZ) - timedelta(hours=24)
+        hours_ago_str = hours_ago.strftime('%Y-%m-%d %H:%M:%S')
 
-    cursor.execute('''
-        SELECT 
-            AVG(humidity) as avg_humidity,
-            MIN(humidity) as min_humidity,
-            MAX(humidity) as max_humidity,
-            AVG(temperature) as avg_temperature
-        FROM sensor_data 
-        WHERE timestamp >= ?
-    ''', (hours_ago_str,))
+        cursor.execute('''
+            SELECT 
+                AVG(humidity) as avg_humidity,
+                MIN(humidity) as min_humidity,
+                MAX(humidity) as max_humidity,
+                AVG(temperature) as avg_temperature
+            FROM sensor_data 
+            WHERE timestamp >= ?
+        ''', (hours_ago_str,))
 
-    stats = cursor.fetchone()
+        stats = cursor.fetchone()
 
-    cursor.execute('''
-        SELECT COUNT(*) as pump_activations
-        FROM irrigation_events 
-        WHERE event_type = 'INICIO_RIEGO' 
-        AND timestamp >= ?
-    ''', (hours_ago_str,))
+        cursor.execute('''
+            SELECT COUNT(*) as pump_activations
+            FROM irrigation_events 
+            WHERE event_type = 'INICIO_RIEGO' 
+            AND timestamp >= ?
+        ''', (hours_ago_str,))
 
-    pump_stats = cursor.fetchone()
+        pump_stats = cursor.fetchone()
 
-    conn.close()
+        conn.close()
 
-    return jsonify({
-        'avg_humidity': round(stats['avg_humidity'] or 0, 1),
-        'min_humidity': stats['min_humidity'] or 0,
-        'max_humidity': stats['max_humidity'] or 0,
-        'avg_temperature': round(stats['avg_temperature'] or 0, 1),
-        'pump_activations_24h': pump_stats['pump_activations'] or 0
-    })
+        return jsonify({
+            'avg_humidity': round(stats['avg_humidity'] or 0, 1),
+            'min_humidity': stats['min_humidity'] or 0,
+            'max_humidity': stats['max_humidity'] or 0,
+            'avg_temperature': round(stats['avg_temperature'] or 0, 1),
+            'pump_activations_24h': pump_stats['pump_activations'] or 0
+        })
+    
+    except Exception as e:
+        print(f"❌ Error obteniendo estadísticas: {e}")
+        return jsonify({
+            'avg_humidity': 0,
+            'min_humidity': 0,
+            'max_humidity': 0,
+            'avg_temperature': 0,
+            'pump_activations_24h': 0
+        })
 
 # WEBSOCKET EVENTS
 @socketio.on('connect')
@@ -407,16 +472,28 @@ def start_cloudflare_tunnel():
 
 # INICIO DEL SISTEMA
 if __name__ == '__main__':
+    print("🚀 Iniciando sistema de riego inteligente...")
+    
+    # Inicializar base de datos
     init_db()
+    print("✅ Base de datos inicializada")
+    
+    # Insertar datos de prueba si es necesario
+    insert_test_data()
 
+    # Iniciar hilo de Arduino
     arduino_thread = threading.Thread(target=read_arduino_data, daemon=True)
     arduino_thread.start()
+    print("✅ Hilo de Arduino iniciado")
 
+    # Iniciar túnel Cloudflare
     tunnel_thread = threading.Thread(target=start_cloudflare_tunnel, daemon=True)
     tunnel_thread.start()
+    print("✅ Túnel Cloudflare iniciado")
 
     try:
         print("🚀 Servidor ejecutándose en http://localhost:5000")
         socketio.run(app, debug=False, host='0.0.0.0', port=5000)
     except KeyboardInterrupt:
+        print("\n👋 Cerrando servidor...")
         sys.exit(0)
